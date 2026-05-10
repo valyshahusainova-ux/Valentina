@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Путешествие Лиса — Obby</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800&display=swap');
+html,body{width:100%;height:100%;overflow:hidden;background:#1a1a2e}
+body{display:flex;justify-content:center;align-items:center;
+  font-family:'Nunito',sans-serif;
+  background:linear-gradient(180deg,#183d4e 0%,#195b45 48%,#10221f 100%)}
+
+#gameContainer{
+  position:relative;width:min(100vw,900px);height:min(100vh,600px);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 0 40px rgba(119,255,168,.18),0 0 80px rgba(73,185,255,.12);
+  border:3px solid rgba(255,255,255,.1);
+}
+
+canvas{display:block;width:100%;height:100%}
+
+/* ===== HUD Roblox Style ===== */
+#hud{
+  position:absolute;top:0;left:0;right:0;padding:12px 20px;
+  display:flex;justify-content:space-between;align-items:center;
+  background:linear-gradient(180deg,rgba(0,0,0,.6) 0%,transparent 100%);
+  pointer-events:none;z-index:10;
+}
+#hud>*{pointer-events:all}
+
+.hud-left,.hud-right{display:flex;align-items:center;gap:12px}
+
+.hud-btn{
+  background:linear-gradient(180deg,#4a4a5a,#3a3a4a);
+  border:2px solid #555;border-radius:8px;padding:8px 16px;
+  color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;
+  cursor:pointer;transition:all .15s;
+}
+.hud-btn:hover{background:linear-gradient(180deg,#5a5a6a,#4a4a5a);border-color:#777}
+
+.stat-box{
+  background:rgba(0,0,0,.5);border:2px solid rgba(255,255,255,.15);
+  border-radius:10px;padding:6px 14px;display:flex;align-items:center;gap:8px;
+}
+.stat-icon{font-size:20px}
+.stat-val{color:#fff;font-weight:800;font-size:16px}
+.stat-label{color:#aaa;font-size:11px;font-weight:600}
+
+/* ===== START MENU ===== */
+#startScreen{
+  position:absolute;inset:0;z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:22px 16px 28px;overflow-y:auto;
+  background:radial-gradient(circle at 30% 20%,rgba(255,239,166,.22),transparent 28%),radial-gradient(circle at 78% 25%,rgba(99,255,201,.16),transparent 25%),linear-gradient(180deg,#1e5c51,#102d38 58%,#0a111f);
+}
+
+#startScreen h1{
+  font-family:'Fredoka One',cursive;font-size:clamp(32px,6vw,64px);
+  color:#fff;text-shadow:0 4px 0 #0f8f63,0 8px 20px rgba(0,0,0,.5);
+  margin-bottom:8px;
+}
+#startScreen .subtitle{color:#d8f7ff;font-size:16px;margin-bottom:18px;text-align:center;max-width:760px;line-height:1.35}
+
+.play-btn{
+  background:linear-gradient(180deg,#2ecc71,#27ae60);
+  border:3px solid #1e8449;border-radius:12px;padding:16px 60px;
+  color:#fff;font-family:'Fredoka One',cursive;font-size:28px;
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 6px 0 #1e8449,0 10px 30px rgba(46,204,113,.3);
+}
+.play-btn:hover{transform:translateY(-2px);box-shadow:0 8px 0 #1e8449,0 15px 40px rgba(46,204,113,.4)}
+.play-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #1e8449}
+
+.level-select{
+  display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;justify-content:center;
+}
+.level-btn{
+  background:linear-gradient(180deg,#3498db,#2980b9);
+  border:2px solid #2176a7;border-radius:10px;padding:12px 24px;
+  color:#fff;font-weight:800;font-size:14px;cursor:pointer;
+  transition:all .15s;
+}
+.level-btn:hover{background:linear-gradient(180deg,#4aa3df,#3498db)}
+.level-btn.locked{background:linear-gradient(180deg,#555,#444);border-color:#333;opacity:.6;cursor:not-allowed}
+
+
+/* ===== WALLET / SHOP ===== */
+.wallet-panel{
+  width:min(860px,96%);margin-top:16px;padding:12px 14px;
+  background:rgba(0,0,0,.34);border:2px solid rgba(255,255,255,.14);
+  border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,.22);
+}
+.wallet-title{color:#fff;font-weight:900;font-size:15px;margin-bottom:8px;text-align:center}
+.wallet-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.wallet-chip{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);
+  border-radius:999px;padding:6px 11px;color:#fff;font-weight:900;font-size:13px;
+}
+.shop-grid{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:8px;margin-top:10px}
+.shop-card{
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));
+  border:2px solid rgba(255,255,255,.14);border-radius:12px;padding:9px;text-align:center;color:#fff;
+}
+.shop-animal{font-size:28px;line-height:1;margin-bottom:4px}
+.shop-name{font-weight:900;font-size:14px}.shop-cost{font-size:11px;color:#e7f8ff;margin:4px 0 8px;min-height:28px}
+.shop-btn{
+  border:2px solid rgba(255,255,255,.18);border-radius:9px;padding:7px 8px;
+  background:linear-gradient(180deg,#43e37f,#1f9f55);color:#fff;font-weight:900;cursor:pointer;width:100%;
+}
+.shop-btn.buy{background:linear-gradient(180deg,#ffcc4d,#e68a00)}
+.shop-btn.locked{background:linear-gradient(180deg,#666,#444);opacity:.68;cursor:not-allowed}
+.shop-btn.selected{background:linear-gradient(180deg,#4aa3ff,#1765c8)}
+@media(max-width:768px){.shop-grid{grid-template-columns:repeat(2,minmax(120px,1fr))}.wallet-panel{margin-bottom:70px}}
+
+/* ===== WIN / DEATH SCREENS ===== */
+.overlay-screen{
+  position:absolute;inset:0;z-index:90;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+}
+.overlay-screen.active{display:flex}
+.overlay-screen h2{
+  font-family:'Fredoka One',cursive;font-size:48px;color:#fff;
+  text-shadow:0 4px 10px rgba(0,0,0,.5);margin-bottom:20px;
+}
+.overlay-screen p{color:#ddd;font-size:18px;margin-bottom:20px}
+
+/* ===== MOBILE CONTROLS ===== */
+#mobileControls{
+  position:absolute;bottom:15px;left:0;right:0;
+  display:none;z-index:20;padding:0 15px;justify-content:space-between;
+}
+.ctrl-group{display:flex;gap:8px}
+.ctrl-btn{
+  width:55px;height:55px;border-radius:12px;
+  background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.3);
+  color:#fff;font-size:24px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  user-select:none;-webkit-user-select:none;
+}
+.ctrl-btn:active{background:rgba(255,255,255,.4)}
+.jump-btn{width:70px!important;font-size:14px!important;font-weight:800}
+
+@media(max-width:768px){#mobileControls{display:flex!important}}
+@media(hover:none) and (pointer:coarse){#mobileControls{display:flex!important}}
+</style>
+</head>
+<body>
+
+<div id="gameContainer">
+  <canvas id="gameCanvas"></canvas>
+  
+  <div id="hud">
+    <div class="hud-left">
+      <button class="hud-btn" onclick="goToMenu()">☰ Меню</button>
+      <div class="stat-box">
+        <span class="stat-icon" id="coinIcon">🍄</span>
+        <div><div class="stat-val" id="coinCount">0</div><div class="stat-label" id="coinLabel">Грибы</div></div>
+      </div>
+    </div>
+    <div class="hud-right">
+      <div class="stat-box">
+        <span class="stat-icon">⏱</span>
+        <div><div class="stat-val" id="timer">00:00</div><div class="stat-label">Время</div></div>
+      </div>
+      <div class="stat-box">
+        <span class="stat-icon">❤️</span>
+        <div><div class="stat-val" id="lives">5</div><div class="stat-label">Жизни</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="startScreen">
+    <h1>🦊 ПУТЕШЕСТВИЕ ЛИСА</h1>
+    <div class="subtitle">Прыгай по сказочным платформам, собирай грибы и жемчужины, открывай новые миры!</div>
+    <button class="play-btn" onclick="startGame()">▶ ИГРАТЬ</button>
+    <div class="level-select">
+      <button class="level-btn" onclick="selectLevel(0)">🌲 Лес</button>
+      <button class="level-btn locked" id="lvl2Btn" onclick="selectLevel(1)">🌌 Космос</button>
+      <button class="level-btn locked" id="lvl3Btn" onclick="selectLevel(2)">🌙 Ночной лес</button>
+      <button class="level-btn locked" id="lvl4Btn" onclick="selectLevel(3)">🌊 Подводный мир</button>
+      <button class="level-btn locked" id="lvl5Btn" onclick="selectLevel(4)">☁️ Небесная карта</button>
+    </div>
+
+    <div class="wallet-panel">
+      <div class="wallet-title">🎒 Мои ресурсы сохраняются в браузере</div>
+      <div class="wallet-row">
+        <div class="wallet-chip">🍄 Лесные грибы: <span id="walletForest">0</span></div>
+        <div class="wallet-chip">🛸 Космо-грибы: <span id="walletCosmos">0</span></div>
+        <div class="wallet-chip">🦪 Жемчужины: <span id="walletPearls">0</span></div>
+        <div class="wallet-chip">⭐ Звёзды: <span id="walletStars">0</span></div>
+      </div>
+      <div class="wallet-title" style="margin-top:10px">🛒 Лавка зверей: выбран герой — <span id="selectedAnimalLabel">Лис</span></div>
+      <div class="shop-grid">
+        <div class="shop-card">
+          <div class="shop-animal">🦊</div><div class="shop-name">Лис</div><div class="shop-cost">Бесплатно</div>
+          <button class="shop-btn selected" id="animalFoxBtn" onclick="selectAnimal('fox')">Выбран</button>
+        </div>
+        <div class="shop-card">
+          <div class="shop-animal">🐺</div><div class="shop-name">Волк</div><div class="shop-cost">Цена: 10 🍄 лесных грибов</div>
+          <button class="shop-btn buy" id="animalWolfBtn" onclick="buyOrSelectAnimal('wolf')">Купить</button>
+        </div>
+        <div class="shop-card">
+          <div class="shop-animal">🫎</div><div class="shop-name">Лось</div><div class="shop-cost">Цена: 20 🛸 космо-грибов</div>
+          <button class="shop-btn buy" id="animalElkBtn" onclick="buyOrSelectAnimal('elk')">Купить</button>
+        </div>
+        <div class="shop-card">
+          <div class="shop-animal">🐻</div><div class="shop-name">Медведь</div><div class="shop-cost">Цена: 50 🦪 жемчужин</div>
+          <button class="shop-btn buy" id="animalBearBtn" onclick="buyOrSelectAnimal('bear')">Купить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="winScreen" class="overlay-screen">
+    <h2>🎉 УРОВЕНЬ ПРОЙДЕН!</h2>
+    <p id="winMsg">Лис справился с маршрутом!</p>
+    <button class="play-btn" onclick="nextLevel()">СЛЕДУЮЩИЙ УРОВЕНЬ</button>
+    <br><br>
+    <button class="level-btn" onclick="goToMenu()">МЕНЮ</button>
+  </div>
+
+  <div id="deathScreen" class="overlay-screen">
+    <h2>💀 ОЙ!</h2>
+    <p>Лис сорвался с тропинки... Попробуйте снова!</p>
+    <button class="play-btn" onclick="respawn()">ЗАНОВО</button>
+  </div>
+
+  <div id="mobileControls">
+    <div class="ctrl-group">
+      <button class="ctrl-btn" id="btnLeft">◀</button>
+      <button class="ctrl-btn" id="btnRight">▶</button>
+    </div>
+    <button class="ctrl-btn jump-btn" id="btnJump">ПРЫЖОК</button>
+  </div>
+</div>
+
+<script>
+// ===== CANVAS SETUP =====
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const container = document.getElementById('gameContainer');
+
+function resizeCanvas() {
+  const rect = container.getBoundingClientRect();
+  canvas.width = rect.width * window.devicePixelRatio;
+  canvas.height = rect.height * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+const W = () => container.clientWidth;
+const H = () => container.clientHeight;
+
+// ===== GAME STATE =====
+let gameState = 'menu'; // menu, playing, win, dead
+let currentLevel = 0;
+let totalCoins = 0;
+let lives = 5;
+let startTime = 0;
+let timerInterval = null;
+let unlockedLevels = [true, false, false, false, false];
+let camera = {x: 0, y: 0};
+let particles = [];
+let screenShake = 0;
+
+
+// ===== СОХРАНЕНИЕ РЕСУРСОВ И МАГАЗИНА =====
+const SAVE_KEY = 'foxJourneySave_shop_v1';
+const animalInfo = {
+  fox:  { name:'Лис',    emoji:'🦊', price:0,  resource:null },
+  wolf: { name:'Волк',   emoji:'🐺', price:10, resource:'forest' },
+  elk:  { name:'Лось',   emoji:'🫎', price:20, resource:'cosmos' },
+  bear: { name:'Медведь',emoji:'🐻', price:50, resource:'pearls' }
+};
+const resourceNames = {
+  forest: 'лесных грибов',
+  cosmos: 'космических грибов',
+  pearls: 'жемчужин',
+  stars: 'звёзд'
+};
+let saveData = loadSaveData();
+unlockedLevels = saveData.unlockedLevels || unlockedLevels;
+
+function defaultSaveData(){
+  return {
+    forest: 0,
+    cosmos: 0,
+    pearls: 0,
+    stars: 0,
+    ownedAnimals: { fox:true, wolf:false, elk:false, bear:false },
+    selectedAnimal: 'fox',
+    unlockedLevels: [true, false, false, false, false]
+  };
+}
+function loadSaveData(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    const base = defaultSaveData();
+    if(!raw) return base;
+    const parsed = JSON.parse(raw);
+    return {
+      ...base,
+      ...parsed,
+      ownedAnimals: {...base.ownedAnimals, ...(parsed.ownedAnimals || {})},
+      unlockedLevels: parsed.unlockedLevels || base.unlockedLevels
+    };
+  }catch(e){ return defaultSaveData(); }
+}
+function saveGameData(){
+  saveData.unlockedLevels = unlockedLevels;
+  localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+}
+function getResourceForLevel(levelNum){
+  if(levelNum === 0) return {key:'forest', icon:'🍄', label:'Лесные грибы'};
+  if(levelNum === 1) return {key:'cosmos', icon:'🛸', label:'Космо-грибы'};
+  if(levelNum === 2) return {key:'stars', icon:'⭐', label:'Звёзды'};
+  if(levelNum === 3) return {key:'pearls', icon:'🦪', label:'Жемчужины'};
+  return {key:'stars', icon:'⭐', label:'Звёзды'};
+}
+function addResourceForCurrentLevel(){
+  const info = getResourceForLevel(currentLevel);
+  saveData[info.key] = (saveData[info.key] || 0) + 1;
+  saveGameData();
+  updateWalletUI();
+}
+function setCollectibleHud(levelNum){
+  const info = getResourceForLevel(levelNum);
+  const icon = document.getElementById('coinIcon');
+  const label = document.getElementById('coinLabel');
+  if(icon) icon.textContent = info.icon;
+  if(label) label.textContent = info.label;
+}
+function updateWalletUI(){
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  set('walletForest', saveData.forest || 0);
+  set('walletCosmos', saveData.cosmos || 0);
+  set('walletPearls', saveData.pearls || 0);
+  set('walletStars', saveData.stars || 0);
+  set('selectedAnimalLabel', animalInfo[saveData.selectedAnimal]?.name || 'Лис');
+  updateAnimalButtons();
+}
+function updateAnimalButtons(){
+  Object.keys(animalInfo).forEach(key=>{
+    const id = 'animal' + key.charAt(0).toUpperCase() + key.slice(1) + 'Btn';
+    const btn = document.getElementById(id);
+    if(!btn) return;
+    const info = animalInfo[key];
+    if(saveData.selectedAnimal === key){ btn.textContent='Выбран'; btn.className='shop-btn selected'; return; }
+    if(saveData.ownedAnimals[key]){ btn.textContent='Выбрать'; btn.className='shop-btn'; return; }
+    const enough = (saveData[info.resource] || 0) >= info.price;
+    btn.textContent = enough ? 'Купить' : 'Не хватает';
+    btn.className = enough ? 'shop-btn buy' : 'shop-btn locked';
+  });
+}
+function buyOrSelectAnimal(key){
+  const info = animalInfo[key];
+  if(!info) return;
+  if(saveData.ownedAnimals[key]){ selectAnimal(key); return; }
+  const have = saveData[info.resource] || 0;
+  if(have < info.price){
+    alert('Не хватает ресурсов: нужно ' + info.price + ' ' + resourceNames[info.resource] + '.');
+    return;
+  }
+  saveData[info.resource] -= info.price;
+  saveData.ownedAnimals[key] = true;
+  saveData.selectedAnimal = key;
+  saveGameData();
+  updateWalletUI();
+}
+function selectAnimal(key){
+  if(!saveData.ownedAnimals[key]) return;
+  saveData.selectedAnimal = key;
+  saveGameData();
+  updateWalletUI();
+}
+
+// ===== INPUT =====
+const keys = {left:false, right:false, jump:false};
+
+document.addEventListener('keydown', e => {
+  if(e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+  if(e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+  if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+    keys.jump = true; e.preventDefault();
+  }
+});
+document.addEventListener('keyup', e => {
+  if(e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+  if(e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+  if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') keys.jump = false;
+});
+
+// Mobile
+function mobileBtn(id, key) {
+  const btn = document.getElementById(id);
+  btn.addEventListener('touchstart', e => {e.preventDefault(); keys[key]=true});
+  btn.addEventListener('touchend', e => {e.preventDefault(); keys[key]=false});
+  btn.addEventListener('mousedown', e => {keys[key]=true});
+  btn.addEventListener('mouseup', e => {keys[key]=false});
+}
+mobileBtn('btnLeft','left'); mobileBtn('btnRight','right'); mobileBtn('btnJump','jump');
+
+// ===== PLAYER =====
+const player = {
+  x:50, y:300, w:30, h:48,
+  vx:0, vy:0, speed:5.4, jumpForce:-13.2, gravity:0.55,
+  onGround:false, facing:1, // 1=right, -1=left
+  color: {fur:'#f47a26', scarf:'#0877ff'},
+  animFrame:0, animTimer:0, dead:false
+};
+
+function resetPlayer(x,y){
+  player.x=x||50; player.y=y||300;
+  player.vx=0; player.vy=0;
+  player.onGround=false; player.dead=false; player.facing=1;
+}
+
+// ===== LEVELS =====
+function createLevel(num){
+  let platforms=[], coins=[], hazards=[], checkpoint={x:50,y:300}, finish={x:0,y:0};
+  
+  if(num===0){
+    // Level 1: Живой лес — легче: платформы шире, ямы короче, кусты стоят не на краю.
+    platforms=[
+      {x:0,y:500,w:260,h:100,color:'#4CAF50',type:'grass'},
+      {x:315,y:470,w:150,h:24,color:'#8BC34A'},
+      {x:545,y:430,w:165,h:24,color:'#8BC34A'},
+      {x:790,y:405,w:150,h:24,color:'#8BC34A'},
+      {x:1000,y:360,w:230,h:140,color:'#4CAF50',type:'grass'},
+      {x:1300,y:315,w:145,h:24,color:'#CDDC39'},
+      {x:1515,y:260,w:160,h:24,color:'#CDDC39'},
+      {x:1735,y:290,w:180,h:24,color:'#CDDC39'},
+      {x:1995,y:350,w:170,h:24,color:'#8BC34A'},
+      {x:2225,y:350,w:240,h:150,color:'#4CAF50',type:'grass'},
+    ];
+    coins=[
+      {x:350,y:430},{x:585,y:390},{x:830,y:365},{x:1070,y:320},
+      {x:1340,y:275},{x:1560,y:220},{x:1795,y:250},{x:2050,y:310},{x:2300,y:310},
+    ];
+    hazards=[
+      // Нижние опасные зоны стали короче, чтобы было проще вернуться после прыжка.
+      {x:260,y:585,w:280,h:20,type:'lava'},
+      {x:710,y:585,w:280,h:20,type:'lava'},
+      {x:1230,y:585,w:260,h:20,type:'lava'},
+      {x:1915,y:585,w:260,h:20,type:'lava'},
+      // Кусты оставлены как преграды, но они маленькие и стоят ближе к середине платформ.
+      {x:110,y:478,w:34,h:18,type:'thornBush'},
+      {x:835,y:383,w:32,h:18,type:'thornBush'},
+      {x:1115,y:338,w:34,h:18,type:'thornBush'},
+      {x:2305,y:328,w:34,h:18,type:'thornBush'},
+    ];
+    checkpoint={x:1000,y:320};
+    finish={x:2380,y:310};
+  }
+  else if(num===1){
+    // Level 2: Космос — легче: шире платформы и меньше ядовитых грибов.
+    platforms=[
+      {x:0,y:500,w:230,h:100,color:'#4630a8',type:'fire'},
+      {x:305,y:455,w:120,h:24,color:'#5c47d9'},
+      {x:505,y:410,w:125,h:24,color:'#5c47d9'},
+      {x:705,y:365,w:145,h:24,color:'#4630a8'},
+      {x:930,y:320,w:130,h:24,color:'#5c47d9'},
+      {x:1160,y:275,w:145,h:24,color:'#6fe7ff'},
+      {x:1390,y:220,w:150,h:24,color:'#5c47d9'},
+      {x:1630,y:255,w:150,h:24,color:'#6fe7ff'},
+      {x:1855,y:315,w:165,h:24,color:'#5c47d9'},
+      {x:2100,y:285,w:150,h:24,color:'#6fe7ff'},
+      {x:2295,y:255,w:240,h:140,color:'#4630a8',type:'fire'},
+    ];
+    coins=[
+      {x:340,y:415},{x:545,y:370},{x:745,y:325},{x:970,y:280},
+      {x:1205,y:235},{x:1445,y:180},{x:1680,y:215},{x:1915,y:275},
+      {x:2145,y:245},{x:2380,y:215},
+    ];
+    hazards=[
+      {x:230,y:585,w:300,h:20,type:'lava'},
+      {x:850,y:585,w:300,h:20,type:'lava'},
+      {x:1545,y:585,w:300,h:20,type:'lava'},
+      {x:2025,y:585,w:230,h:20,type:'lava'},
+      // Ядовитые космические грибы стали реже и меньше.
+      {x:745,y:342,w:28,h:20,type:'poisonMushroom'},
+      {x:1460,y:198,w:28,h:20,type:'poisonMushroom'},
+      {x:2140,y:263,w:28,h:20,type:'poisonMushroom'},
+    ];
+    checkpoint={x:1160,y:235};
+    finish={x:2440,y:215};
+  }
+  else if(num===2){
+    // Level 3: Ночной лес — теперь сложнее предыдущих, но не мучительный.
+    platforms=[
+      {x:0,y:500,w:230,h:100,color:'#1f6d55',type:'neon'},
+      {x:300,y:455,w:115,h:20,color:'#38a86a'},
+      {x:500,y:405,w:125,h:20,color:'#38a86a'},
+      {x:705,y:355,w:135,h:20,color:'#5bd48a'},
+      {x:930,y:305,w:125,h:20,color:'#38a86a'},
+      {x:1145,y:255,w:135,h:20,color:'#5bd48a'},
+      {x:1375,y:305,w:125,h:20,color:'#78ffad'},
+      {x:1585,y:355,w:135,h:20,color:'#38a86a'},
+      {x:1815,y:310,w:125,h:20,color:'#5bd48a'},
+      {x:2035,y:360,w:135,h:20,color:'#38a86a'},
+      {x:2255,y:305,w:260,h:145,color:'#1f6d55',type:'neon'},
+    ];
+    coins=[
+      {x:335,y:415},{x:540,y:365},{x:750,y:315},{x:970,y:265},
+      {x:1190,y:215},{x:1420,y:265},{x:1635,y:315},{x:1855,y:270},
+      {x:2085,y:320},{x:2350,y:265},
+    ];
+    hazards=[
+      {x:230,y:585,w:300,h:20,type:'lava'},
+      {x:625,y:585,w:300,h:20,type:'lava'},
+      {x:1280,y:585,w:300,h:20,type:'lava'},
+      {x:1940,y:585,w:300,h:20,type:'lava'},
+      // Шипы оставлены, но они не перекрывают весь путь.
+      {x:745,y:334,w:42,h:18,type:'spikes'},
+      {x:1185,y:234,w:42,h:18,type:'spikes'},
+      {x:1860,y:289,w:42,h:18,type:'spikes'},
+      {x:2335,y:284,w:42,h:18,type:'spikes'},
+    ];
+    checkpoint={x:1145,y:215};
+    finish={x:2420,y:265};
+  }
+  else if(num===3){
+    // Level 4: Подводный мир — шире коралловые платформы, ядовитые кораллы меньше.
+    platforms=[
+      {x:0,y:500,w:230,h:100,color:'#0aa6a6',type:'coral'},
+      {x:300,y:455,w:125,h:20,color:'#26d0c3',type:'coral'},
+      {x:500,y:410,w:130,h:20,color:'#2ae0d2',type:'coral'},
+      {x:710,y:365,w:140,h:20,color:'#26d0c3',type:'coral'},
+      {x:940,y:320,w:130,h:20,color:'#65f0ff',type:'bubble'},
+      {x:1160,y:275,w:135,h:20,color:'#65f0ff',type:'bubble'},
+      {x:1390,y:230,w:150,h:20,color:'#2ae0d2',type:'coral'},
+      {x:1635,y:285,w:135,h:20,color:'#65f0ff',type:'bubble'},
+      {x:1860,y:340,w:145,h:20,color:'#26d0c3',type:'coral'},
+      {x:2100,y:300,w:145,h:20,color:'#65f0ff',type:'bubble'},
+      {x:2310,y:250,w:230,h:130,color:'#0aa6a6',type:'coral'},
+    ];
+    coins=[
+      {x:340,y:415},{x:540,y:370},{x:755,y:325},{x:985,y:280},
+      {x:1205,y:235},{x:1440,y:190},{x:1685,y:245},{x:1910,y:300},
+      {x:2140,y:260},{x:2390,y:210},
+    ];
+    hazards=[
+      {x:230,y:585,w:280,h:20,type:'lava'},
+      {x:630,y:585,w:300,h:20,type:'lava'},
+      {x:1295,y:585,w:300,h:20,type:'lava'},
+      {x:2005,y:585,w:280,h:20,type:'lava'},
+      // Ядовитые кораллы теперь маленькие и стоят как отдельные препятствия, а не как стена.
+      {x:755,y:337,w:34,h:22,type:'poisonCoral'},
+      {x:1445,y:202,w:34,h:22,type:'poisonCoral'},
+      {x:2165,y:272,w:34,h:22,type:'poisonCoral'},
+      {x:2385,y:222,w:34,h:22,type:'poisonCoral'},
+    ];
+    checkpoint={x:1160,y:235};
+    finish={x:2460,y:210};
+  }
+
+  else if(num===4){
+    // Level 5: Небесная карта — лиса прыгает по облакам, а главная преграда — туча с молнией.
+    platforms=[
+      {x:0,y:500,w:260,h:100,color:'#ffffff',type:'cloud'},
+      {x:315,y:455,w:165,h:24,color:'#ffffff',type:'cloud'},
+      {x:560,y:405,w:175,h:24,color:'#ffffff',type:'cloud'},
+      {x:820,y:355,w:165,h:24,color:'#ffffff',type:'cloud'},
+      {x:1060,y:390,w:190,h:24,color:'#ffffff',type:'cloud'},
+      {x:1335,y:330,w:180,h:24,color:'#ffffff',type:'cloud'},
+      {x:1590,y:275,w:175,h:24,color:'#ffffff',type:'cloud'},
+      {x:1840,y:330,w:190,h:24,color:'#ffffff',type:'cloud'},
+      {x:2115,y:380,w:170,h:24,color:'#ffffff',type:'cloud'},
+      {x:2350,y:320,w:240,h:140,color:'#ffffff',type:'cloud'},
+    ];
+    coins=[
+      {x:355,y:415},{x:610,y:365},{x:870,y:315},{x:1125,y:350},
+      {x:1390,y:290},{x:1645,y:235},{x:1900,y:290},{x:2170,y:340},{x:2430,y:280},
+    ];
+    hazards=[
+      // Нижняя опасность — падение в облачную бездну.
+      {x:260,y:585,w:290,h:20,type:'skyVoid'},
+      {x:735,y:585,w:300,h:20,type:'skyVoid'},
+      {x:1250,y:585,w:320,h:20,type:'skyVoid'},
+      {x:2030,y:585,w:300,h:20,type:'skyVoid'},
+      // Тучи с молнией: их можно перепрыгнуть или обойти по краю платформы.
+      {x:615,y:374,w:48,h:32,type:'stormCloud'},
+      {x:1405,y:298,w:48,h:32,type:'stormCloud'},
+      {x:1915,y:298,w:48,h:32,type:'stormCloud'},
+      {x:2445,y:288,w:48,h:32,type:'stormCloud'},
+    ];
+    checkpoint={x:0,y:455};
+    finish={x:2490,y:280};
+  }
+  
+  return {platforms, coins, hazards, checkpoint, finish, w:2600};
+}
+
+let level = null;
+
+// ===== MENU & START =====
+function goToMenu(){
+  gameState='menu';
+  document.getElementById('startScreen').style.display='flex';
+  document.getElementById('hud').style.display='none';
+  document.getElementById('winScreen').classList.remove('active');
+  document.getElementById('deathScreen').classList.remove('active');
+  // Update level buttons
+  document.getElementById('lvl2Btn').className='level-btn'+(unlockedLevels[1]?'':' locked');
+  document.getElementById('lvl3Btn').className='level-btn'+(unlockedLevels[2]?'':' locked');
+  document.getElementById('lvl4Btn').className='level-btn'+(unlockedLevels[3]?'':' locked');
+  document.getElementById('lvl5Btn').className='level-btn'+(unlockedLevels[4]?'':' locked');
+  updateWalletUI();
+}
+
+
+function selectLevel(n){
+  if(!unlockedLevels[n]) return;
+  currentLevel=n;
+  document.getElementById('startScreen').style.display='none';
+  document.getElementById('hud').style.display='flex';
+  startGameLevel(n);
+}
+
+function startGame(){
+  selectLevel(0);
+}
+
+function startGameLevel(n){
+  level = createLevel(n);
+  resetPlayer(level.checkpoint.x, level.checkpoint.y);
+  gameState='playing';
+  lives=5;
+  totalCoins=0;
+  setCollectibleHud(n);
+  document.getElementById('coinCount').textContent='0';
+  document.getElementById('lives').textContent='5';
+  updateWalletUI();
+  startTime=Date.now();
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval=setInterval(updateTimer,100);
+  updateTimer();
+  particles=[];
+  screenShake=0;
+}
+
+function updateTimer(){
+  let elapsed=Math.floor((Date.now()-startTime)/1000);
+  let m=String(Math.floor(elapsed/60)).padStart(2,'0');
+  let s=String(elapsed%60).padStart(2,'0');
+  document.getElementById('timer').textContent=m+':'+s;
+}
+
+function respawn(){
+  document.getElementById('deathScreen').classList.remove('active');
+  if(lives>0){
+    resetPlayer(level.checkpoint.x, level.checkpoint.y);
+    gameState='playing';
+  } else {
+    startGameLevel(currentLevel);
+  }
+}
+
+function nextLevel(){
+  document.getElementById('winScreen').classList.remove('active');
+  if(currentLevel<4){
+    unlockedLevels[currentLevel+1]=true;
+    saveGameData();
+    updateWalletUI();
+  }
+  if(currentLevel<4){
+    selectLevel(currentLevel+1);
+  } else {
+    goToMenu();
+  }
+}
+
+function showWin(){
+  gameState='win';
+  document.getElementById('winMsg').textContent=(getResourceForLevel(currentLevel).label+': '+totalCoins+' | Время: '+document.getElementById('timer').textContent);
+  document.getElementById('winScreen').classList.add('active');
+  // Spawn confetti
+  for(let i=0;i<30;i++){
+    spawnParticle(player.x+Math.random()*200-100, player.y-100, '#FFD700');
+  }
+  if(currentLevel<4){
+    unlockedLevels[currentLevel+1]=true;
+    saveGameData();
+    updateWalletUI();
+  }
+}
+
+function showDeath(){
+  gameState='dead';
+  lives--;
+  document.getElementById('lives').textContent=lives;
+  screenShake=10;
+  if(lives>0){
+    setTimeout(()=>{
+      document.getElementById('deathScreen').classList.add('active');
+    }, 500);
+  } else {
+    setTimeout(()=>{
+      document.getElementById('deathScreen').classList.add('active');
+    }, 500);
+  }
+}
+
+// ===== PARTICLES =====
+function spawnParticle(x,y,color,count=3){
+  for(let i=0;i<count;i++){
+    particles.push({
+      x,y, vx:(Math.random()-.5)*6, vy:-Math.random()*5-2,
+      life:1, color, size:3+Math.random()*4
+    });
+  }
+}
+
+function updateParticles(){
+  for(let i=particles.length-1;i>=0;i--){
+    let p=particles[i];
+    p.x+=p.vx; p.y+=p.vy; p.vy+=0.15;
+    p.life-=0.02;
+    if(p.life<=0) particles.splice(i,1);
+  }
+}
+
+function drawParticles(){
+  for(let p of particles){
+    ctx.globalAlpha=p.life;
+    ctx.fillStyle=p.color;
+    ctx.fillRect(p.x-camera.x, p.y-camera.y, p.size, p.size);
+  }
+  ctx.globalAlpha=1;
+}
+
+// ===== PHYSICS & COLLISION =====
+function rectsOverlap(a,b){
+  return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y;
+}
+
+function updatePlayer(){
+  if(gameState!=='playing') return;
+  
+  // Horizontal
+  if(keys.left){player.vx=-player.speed; player.facing=-1;}
+  else if(keys.right){player.vx=player.speed; player.facing=1;}
+  else{player.vx*=0.8; if(Math.abs(player.vx)<0.1) player.vx=0;}
+  
+  // Jump
+  if(keys.jump && player.onGround){
+    player.vy=player.jumpForce;
+    player.onGround=false;
+    spawnParticle(player.x+player.w/2, player.y+player.h, '#fff', 5);
+  }
+  
+  // Gravity
+  player.vy+=player.gravity;
+  if(player.vy>15) player.vy=15;
+  
+  // Move X
+  player.x+=player.vx;
+  // Collide X
+  for(let p of level.platforms){
+    if(rectsOverlap(player,p)){
+      if(player.vx>0) player.x=p.x-player.w;
+      else if(player.vx<0) player.x=p.x+p.w;
+      player.vx=0;
+    }
+  }
+  
+  // Move Y
+  player.y+=player.vy;
+  player.onGround=false;
+  // Collide Y
+  for(let p of level.platforms){
+    if(rectsOverlap(player,p)){
+      if(player.vy>0){
+        player.y=p.y-player.h;
+        player.vy=0;
+        player.onGround=true;
+      } else if(player.vy<0){
+        player.y=p.y+p.h;
+        player.vy=0;
+      }
+    }
+  }
+  
+  // Coins
+  for(let i=level.coins.length-1;i>=0;i--){
+    let c=level.coins[i];
+    let cx=c.x, cy=c.y;
+    if(player.x<cx+20 && player.x+player.w>cx && player.y<cy+20 && player.y+player.h>cy){
+      level.coins.splice(i,1);
+      totalCoins++;
+      addResourceForCurrentLevel();
+      document.getElementById('coinCount').textContent=totalCoins;
+      const resInfo=getResourceForLevel(currentLevel);
+      spawnParticle(cx+10, cy+10, currentLevel===3?'#BFF6FF':(resInfo.key==='stars'?'#FFE84A':'#FFD700'), 8);
+    }
+  }
+  
+  // Hazards
+  for(let h of level.hazards){
+    if(rectsOverlap(player, h)){
+      showDeath();
+      return;
+    }
+  }
+  
+  // Fall off screen
+  if(player.y > H() + 100){
+    showDeath();
+    return;
+  }
+  
+  // Checkpoint
+  let cpDist = Math.abs(player.x+player.w/2 - (level.checkpoint.x+50));
+  if(cpDist < 80 && Math.abs(player.y - level.checkpoint.y) < 60){
+    // auto save at start
+  }
+  
+  // Finish
+  let f = level.finish;
+  if(player.x < f.x+60 && player.x+player.w > f.x && player.y < f.y+60 && player.y+player.h > f.y){
+    showWin();
+  }
+  
+  // Animation
+  player.animTimer++;
+  if(player.animTimer>8){player.animTimer=0; player.animFrame=(player.animFrame+1)%4;}
+}
+
+// ===== CAMERA =====
+function updateCamera(){
+  let targetX = player.x - W()/2 + player.w/2;
+  let targetY = player.y - H()/2 + player.h/2;
+  camera.x += (targetX - camera.x) * 0.1;
+  camera.y += (targetY - camera.y) * 0.1;
+  if(camera.x<0) camera.x=0;
+  if(camera.y>0) camera.y=0;
+}
+
+// ===== DRAWING =====
+function roundRectPath(x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+function shadeColor(color, percent){
+  let num=parseInt(color.slice(1),16), amt=Math.round(2.55*percent), R=(num>>16)+amt, G=(num>>8&0x00FF)+amt, B=(num&0x0000FF)+amt;
+  return '#'+(0x1000000+(R<255?R<1?0:R:255)*0x10000+(G<255?G<1?0:G:255)*0x100+(B<255?B<1?0:B:255)).toString(16).slice(1);
+}
+function drawBlock(x,y,w,h,color){
+  let sx=x-camera.x, sy=y-camera.y;
+  if(sx>W()+10||sx+w<-10||sy>H()+10||sy+h<-10) return;
+  if(currentLevel===4){
+    // Облачные платформы: мягкие, круглые и светлые, но хитбокс остается понятным.
+    ctx.fillStyle='rgba(80,120,180,0.20)';
+    ctx.beginPath(); ctx.ellipse(sx+w/2+6, sy+h+10, w*.48, 12, 0, 0, Math.PI*2); ctx.fill();
+    let cloudGrad=ctx.createLinearGradient(sx,sy-18,sx,sy+h+12);
+    cloudGrad.addColorStop(0,'#ffffff'); cloudGrad.addColorStop(.55,'#eaf7ff'); cloudGrad.addColorStop(1,'#b7d8ff');
+    ctx.fillStyle=cloudGrad;
+    roundRectPath(sx, sy+2, w, h+10, 14); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(sx+24, sy+5, 25, 0, Math.PI*2);
+    ctx.arc(sx+60, sy-6, 31, 0, Math.PI*2);
+    ctx.arc(sx+102, sy+2, 27, 0, Math.PI*2);
+    ctx.arc(sx+w-30, sy+5, 24, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.75)';
+    ctx.beginPath(); ctx.ellipse(sx+w*.36, sy-5, w*.22, 8, 0, 0, Math.PI*2); ctx.fill();
+    return;
+  }
+  ctx.fillStyle='rgba(0,0,0,0.28)'; roundRectPath(sx+5,sy+7,w,h,8); ctx.fill();
+  let grad=ctx.createLinearGradient(sx,sy,sx,sy+h); grad.addColorStop(0,shadeColor(color,18)); grad.addColorStop(1,shadeColor(color,-16));
+  ctx.fillStyle=grad; roundRectPath(sx,sy,w,h,8); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.20)'; roundRectPath(sx+3,sy+2,w-6,5,4); ctx.fill();
+  if(currentLevel===0 || currentLevel===2){
+    ctx.fillStyle=currentLevel===2?'#78ffad':'#78e86c';
+    for(let gx=sx+4; gx<sx+w-4; gx+=10){ctx.beginPath(); ctx.moveTo(gx,sy+1); ctx.lineTo(gx+4,sy-7-Math.sin((gx+Date.now()/80))*2); ctx.lineTo(gx+8,sy+1); ctx.fill();}
+  }
+  if(currentLevel===1){ctx.strokeStyle='rgba(115,255,255,0.45)'; ctx.lineWidth=2; roundRectPath(sx-2,sy-2,w+4,h+4,9); ctx.stroke();}
+  if(currentLevel===3){
+    ctx.strokeStyle='rgba(180,255,255,0.55)'; ctx.lineWidth=2; roundRectPath(sx-2,sy-2,w+4,h+4,9); ctx.stroke();
+    ctx.fillStyle='rgba(255,125,196,0.85)';
+    for(let gx=sx+8; gx<sx+w-8; gx+=18){ctx.beginPath(); ctx.arc(gx,sy-5,4,0,Math.PI*2); ctx.fill();}
+  }
+}
+
+function drawPlayer(){
+  let sx=player.x-camera.x, sy=player.y-camera.y, f=player.facing;
+  let run=player.onGround ? Math.sin(player.animFrame*Math.PI/2) : 0.5;
+  const animal = saveData.selectedAnimal || 'fox';
+  ctx.save(); ctx.translate(sx+player.w/2, sy+player.h/2); ctx.scale(f,1);
+  ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(0,26,22,7,0,0,Math.PI*2); ctx.fill();
+
+  if(animal==='wolf') drawWolf(run);
+  else if(animal==='elk') drawElk(run);
+  else if(animal==='bear') drawBear(run);
+  else drawFox(run);
+
+  ctx.restore();
+}
+
+function drawFox(run){
+  let tailGrad=ctx.createLinearGradient(-34,-8,-6,18); tailGrad.addColorStop(0,'#ffb65c'); tailGrad.addColorStop(.72,'#d85a1f'); tailGrad.addColorStop(1,'#fff6e8');
+  ctx.fillStyle=tailGrad; ctx.beginPath(); ctx.ellipse(-28,-2,22,11,-0.45+run*0.05,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#6f2c0e'; ctx.fillRect(-12,15-run*2,8,16); ctx.fillRect(6,15+run*2,8,16);
+  let bodyGrad=ctx.createRadialGradient(-8,-8,5,0,0,32); bodyGrad.addColorStop(0,'#ffc477'); bodyGrad.addColorStop(.55,'#f47a26'); bodyGrad.addColorStop(1,'#a64016');
+  ctx.fillStyle=bodyGrad; ctx.beginPath(); ctx.ellipse(0,6,22,24,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffd9b0'; ctx.beginPath(); ctx.ellipse(3,12,12,13,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=bodyGrad; ctx.beginPath(); ctx.ellipse(0,-23,23,20,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#e85f1f'; ctx.beginPath(); ctx.moveTo(-15,-36); ctx.lineTo(-22,-56); ctx.lineTo(-4,-41); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(15,-36); ctx.lineTo(23,-56); ctx.lineTo(4,-41); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#ffd1ad'; ctx.beginPath(); ctx.moveTo(-15,-40); ctx.lineTo(-18,-50); ctx.lineTo(-8,-42); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(15,-40); ctx.lineTo(18,-50); ctx.lineTo(8,-42); ctx.closePath(); ctx.fill();
+  drawFace('#fff3df','#1d1110');
+  ctx.fillStyle='#0877ff'; ctx.beginPath(); ctx.moveTo(-19,-2); ctx.quadraticCurveTo(0,9,20,-2); ctx.quadraticCurveTo(8,18,-8,15); ctx.quadraticCurveTo(-18,10,-19,-2); ctx.fill();
+  ctx.fillStyle='#005bd1'; ctx.beginPath(); ctx.moveTo(8,8); ctx.lineTo(25,18); ctx.lineTo(12,20); ctx.closePath(); ctx.fill();
+}
+function drawWolf(run){
+  ctx.fillStyle='#5f6f7d'; ctx.beginPath(); ctx.ellipse(-27,-2,20,9,-.30,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#34404a'; ctx.fillRect(-12,15-run*2,8,16); ctx.fillRect(6,15+run*2,8,16);
+  let g=ctx.createRadialGradient(-8,-8,5,0,0,32); g.addColorStop(0,'#cfd8df'); g.addColorStop(.55,'#7c8b96'); g.addColorStop(1,'#3a4650');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(0,6,23,24,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#dce6ec'; ctx.beginPath(); ctx.ellipse(2,12,11,12,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(0,-23,24,20,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#566673'; ctx.beginPath(); ctx.moveTo(-15,-36); ctx.lineTo(-23,-56); ctx.lineTo(-4,-42); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(15,-36); ctx.lineTo(23,-56); ctx.lineTo(4,-42); ctx.closePath(); ctx.fill();
+  drawFace('#e8eef2','#111');
+  ctx.fillStyle='#35d0ff'; ctx.fillRect(-16,-1,32,5);
+}
+function drawElk(run){
+  ctx.fillStyle='#6b3f1f'; ctx.beginPath(); ctx.ellipse(-26,0,15,7,-.25,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#4a2714'; ctx.fillRect(-13,15-run*2,8,17); ctx.fillRect(7,15+run*2,8,17);
+  let g=ctx.createRadialGradient(-7,-8,5,0,0,32); g.addColorStop(0,'#c58b4b'); g.addColorStop(.55,'#8a5528'); g.addColorStop(1,'#4f2b15');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(0,6,24,24,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#d7b083'; ctx.beginPath(); ctx.ellipse(3,12,12,13,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(0,-22,23,19,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#e0c48a'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-12,-38); ctx.lineTo(-28,-56); ctx.moveTo(-25,-52); ctx.lineTo(-38,-60); ctx.moveTo(-25,-52); ctx.lineTo(-31,-42); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(12,-38); ctx.lineTo(28,-56); ctx.moveTo(25,-52); ctx.lineTo(38,-60); ctx.moveTo(25,-52); ctx.lineTo(31,-42); ctx.stroke();
+  drawFace('#e4c19a','#16100b');
+  ctx.fillStyle='#0aa6a6'; ctx.fillRect(-15,-1,30,5);
+}
+function drawBear(run){
+  let g=ctx.createRadialGradient(-8,-8,5,0,0,36); g.addColorStop(0,'#b47742'); g.addColorStop(.6,'#73421f'); g.addColorStop(1,'#3d2110');
+  ctx.fillStyle='#3d2110'; ctx.fillRect(-14,13-run*1.5,10,19); ctx.fillRect(6,13+run*1.5,10,19);
+  ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(0,6,27,27,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#c69b68'; ctx.beginPath(); ctx.ellipse(3,13,13,13,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(0,-22,25,21,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-16,-38,8,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(16,-38,8,0,Math.PI*2); ctx.fill();
+  drawFace('#d2ae82','#130b07');
+  ctx.fillStyle='#ffcc4d'; ctx.fillRect(-17,-2,34,5);
+}
+function drawFace(muzzleColor, eyeColor){
+  ctx.fillStyle=muzzleColor; ctx.beginPath(); ctx.ellipse(0,-18,15,12,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=eyeColor; ctx.beginPath(); ctx.ellipse(-7,-24,3,4,0,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(7,-24,3,4,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(-6,-25,1,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(8,-25,1,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#111'; ctx.beginPath(); ctx.ellipse(0,-15,4,3,0,0,Math.PI*2); ctx.fill();
+}
+
+function drawCoin(coin){
+  let sx=coin.x-camera.x, sy=coin.y-camera.y; if(sx>W()+40||sx<-40||sy>H()+40||sy<-40) return;
+  let bounce=Math.sin(Date.now()/300)*4, y=sy+bounce;
+  if(currentLevel===3){
+    ctx.fillStyle='rgba(210,250,255,0.32)'; ctx.beginPath(); ctx.arc(sx+10,y+13,22,0,Math.PI*2); ctx.fill();
+    let pearl=ctx.createRadialGradient(sx+5,y+7,2,sx+10,y+13,16);
+    pearl.addColorStop(0,'#ffffff'); pearl.addColorStop(.45,'#bff6ff'); pearl.addColorStop(1,'#5ab8ff');
+    ctx.fillStyle=pearl; ctx.beginPath(); ctx.arc(sx+10,y+13,12,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.85)'; ctx.beginPath(); ctx.arc(sx+6,y+9,3,0,Math.PI*2); ctx.fill();
+    return;
+  }
+  if(currentLevel===4){
+    // На небесной карте собираем солнечные искры.
+    ctx.fillStyle='rgba(255,247,150,0.35)'; ctx.beginPath(); ctx.arc(sx+10,y+13,22,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#ffd84d';
+    ctx.beginPath();
+    for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5; let r=i%2===0?15:7; let px=sx+10+Math.cos(a)*r; let py=y+13+Math.sin(a)*r; if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py);}
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(sx+6,y+8,3,0,Math.PI*2); ctx.fill();
+    return;
+  }
+  ctx.fillStyle=currentLevel===1?'rgba(90,255,240,0.30)':'rgba(255,238,128,0.30)'; ctx.beginPath(); ctx.arc(sx+10,y+13,20,0,Math.PI*2); ctx.fill();
+  let stem=ctx.createLinearGradient(sx,y+8,sx,y+24); stem.addColorStop(0,'#fff5d6'); stem.addColorStop(1,'#d6a05d');
+  ctx.fillStyle=currentLevel===1?'#a7f7ff':stem; roundRectPath(sx+5,y+10,10,18,5); ctx.fill();
+  let cap=ctx.createRadialGradient(sx+6,y+2,2,sx+10,y+8,18);
+  if(currentLevel===1){cap.addColorStop(0,'#eaffff'); cap.addColorStop(.45,'#4fffe1'); cap.addColorStop(1,'#7c3dff');}
+  else{cap.addColorStop(0,'#ff9b9b'); cap.addColorStop(.55,'#e93636'); cap.addColorStop(1,'#8b1010');}
+  ctx.fillStyle=cap; ctx.beginPath(); ctx.ellipse(sx+10,y+9,15,10,0,Math.PI,Math.PI*2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#fff7e8'; ctx.beginPath(); ctx.arc(sx+4,y+6,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(sx+12,y+3,2,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(sx+18,y+8,2,0,Math.PI*2); ctx.fill();
+}
+
+function drawHazard(h){
+  let sx=h.x-camera.x, sy=h.y-camera.y; if(sx>W()+10||sx+h.w<-10) return;
+  let t=Date.now()/500;
+
+  // Колючие кусты в лесу: небольшие, но опасные препятствия.
+  if(h.type==='thornBush'){
+    ctx.fillStyle='rgba(10,50,18,0.25)'; ctx.fillRect(sx-8,sy+h.h-4,h.w+16,10);
+    let grad=ctx.createLinearGradient(sx,sy,sx,sy+h.h);
+    grad.addColorStop(0,'#49d96c'); grad.addColorStop(1,'#0d6b2c');
+    ctx.fillStyle=grad;
+    for(let i=0;i<h.w;i+=10){
+      ctx.beginPath();
+      ctx.moveTo(sx+i,sy+h.h);
+      ctx.quadraticCurveTo(sx+i+5,sy-8-Math.sin(t+i)*3,sx+i+10,sy+h.h);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.strokeStyle='#d9ffe0'; ctx.lineWidth=2;
+    for(let i=5;i<h.w;i+=14){ctx.beginPath(); ctx.moveTo(sx+i,sy+h.h-4); ctx.lineTo(sx+i+7,sy+5); ctx.stroke();}
+    return;
+  }
+
+  // Ядовитые космические грибы: светятся, но вредят лису.
+  if(h.type==='poisonMushroom'){
+    ctx.fillStyle='rgba(184,70,255,0.30)'; ctx.beginPath(); ctx.arc(sx+h.w/2,sy+h.h/2,24+Math.sin(t)*3,0,Math.PI*2); ctx.fill();
+    let stem=ctx.createLinearGradient(sx,sy+8,sx,sy+h.h+8); stem.addColorStop(0,'#d8fff9'); stem.addColorStop(1,'#5a72ff');
+    ctx.fillStyle=stem; roundRectPath(sx+h.w/2-5,sy+9,10,18,5); ctx.fill();
+    let cap=ctx.createRadialGradient(sx+h.w/2-4,sy+2,2,sx+h.w/2,sy+8,20);
+    cap.addColorStop(0,'#ffffff'); cap.addColorStop(.35,'#50ffe7'); cap.addColorStop(1,'#9b35ff');
+    ctx.fillStyle=cap; ctx.beginPath(); ctx.ellipse(sx+h.w/2,sy+9,18,11,0,Math.PI,Math.PI*2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#ff5df5'; ctx.beginPath(); ctx.arc(sx+h.w/2-7,sy+6,3,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(sx+h.w/2+8,sy+8,3,0,Math.PI*2); ctx.fill();
+    return;
+  }
+
+  // Шипы в ночном лесу: классическая ловушка на платформе.
+  if(h.type==='spikes'){
+    ctx.fillStyle='rgba(120,255,173,0.16)'; ctx.fillRect(sx-6,sy-6,h.w+12,h.h+12);
+    ctx.fillStyle='#263344'; ctx.fillRect(sx,sy+h.h-5,h.w,5);
+    for(let i=0;i<h.w;i+=14){
+      let g=ctx.createLinearGradient(sx+i,sy,sx+i,sy+h.h);
+      g.addColorStop(0,'#eafff5'); g.addColorStop(1,'#67ffb3');
+      ctx.fillStyle=g;
+      ctx.beginPath(); ctx.moveTo(sx+i,sy+h.h); ctx.lineTo(sx+i+7,sy); ctx.lineTo(sx+i+14,sy+h.h); ctx.closePath(); ctx.fill();
+    }
+    return;
+  }
+
+  // Ядовитые кораллы в подводном мире.
+  if(h.type==='poisonCoral'){
+    ctx.fillStyle='rgba(255,67,160,0.24)'; ctx.beginPath(); ctx.ellipse(sx+h.w/2,sy+h.h, h.w*.75, 12,0,0,Math.PI*2); ctx.fill();
+    ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=7;
+    let colors=['#ff4fa3','#ff7ad9','#a7fff3'];
+    for(let i=0;i<5;i++){
+      ctx.strokeStyle=colors[i%colors.length];
+      let base=sx+6+i*(h.w-12)/4;
+      ctx.beginPath();
+      ctx.moveTo(base,sy+h.h);
+      ctx.quadraticCurveTo(base+Math.sin(t+i)*9,sy+h.h*.55,base+PhaserLikeSin(t,i)*7,sy+4+i%2*4);
+      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(base,sy+h.h*.60); ctx.lineTo(base-7,sy+h.h*.42); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(base,sy+h.h*.52); ctx.lineTo(base+8,sy+h.h*.32); ctx.stroke();
+    }
+    ctx.fillStyle='rgba(255,255,255,.75)'; ctx.beginPath(); ctx.arc(sx+h.w-8,sy+6,3,0,Math.PI*2); ctx.fill();
+    return;
+  }
+
+
+
+  // Туча с молнией в небесной карте.
+  if(h.type==='stormCloud'){
+    let pulse=.65+Math.abs(Math.sin(t*2))*0.25;
+    ctx.fillStyle=`rgba(70,83,118,${pulse})`;
+    ctx.beginPath();
+    ctx.arc(sx+12,sy+14,15,0,Math.PI*2);
+    ctx.arc(sx+27,sy+6,18,0,Math.PI*2);
+    ctx.arc(sx+44,sy+15,16,0,Math.PI*2);
+    ctx.arc(sx+28,sy+20,20,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.22)'; ctx.beginPath(); ctx.arc(sx+18,sy+7,7,0,Math.PI*2); ctx.fill();
+    let lightningShift=Math.sin(t*7)*2;
+    ctx.fillStyle='#ffe84a';
+    ctx.beginPath();
+    ctx.moveTo(sx+28+lightningShift,sy+25);
+    ctx.lineTo(sx+18+lightningShift,sy+50);
+    ctx.lineTo(sx+32+lightningShift,sy+43);
+    ctx.lineTo(sx+22+lightningShift,sy+70);
+    ctx.lineTo(sx+47+lightningShift,sy+34);
+    ctx.lineTo(sx+34+lightningShift,sy+39);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle='rgba(255,232,74,0.22)'; ctx.fillRect(sx+16,sy+28,h.w,h.h+18);
+    return;
+  }
+
+  // Основные нижние опасные зоны: болото, плазма, ночной туман, глубина и облачная бездна.
+  if(currentLevel===0){ctx.fillStyle='rgba(45,25,10,0.28)'; ctx.fillRect(sx-10,sy-16,h.w+20,38); ctx.fillStyle='#4b2f17'; ctx.fillRect(sx,sy,h.w,h.h); ctx.fillStyle='#1f6f38';}
+  else if(currentLevel===1){ctx.fillStyle='rgba(255,79,252,0.22)'; ctx.fillRect(sx-10,sy-18,h.w+20,42); ctx.fillStyle='#5b1d8e'; ctx.fillRect(sx,sy,h.w,h.h); ctx.fillStyle='#61fff1';}
+  else if(currentLevel===2){ctx.fillStyle='rgba(96,255,210,0.18)'; ctx.fillRect(sx-10,sy-18,h.w+20,42); ctx.fillStyle='#111b2d'; ctx.fillRect(sx,sy,h.w,h.h); ctx.fillStyle='#9effd0';}
+  else if(currentLevel===3){ctx.fillStyle='rgba(90,230,255,0.25)'; ctx.fillRect(sx-10,sy-20,h.w+20,46); ctx.fillStyle='#01415f'; ctx.fillRect(sx,sy,h.w,h.h); ctx.fillStyle='#d8fbff';}
+  else{ctx.fillStyle='rgba(255,255,255,0.26)'; ctx.fillRect(sx-10,sy-18,h.w+20,42); ctx.fillStyle='#7aa7e8'; ctx.fillRect(sx,sy,h.w,h.h); ctx.fillStyle='#fff7a8';}
+  for(let i=0;i<h.w/30;i++){let bx=sx+i*30+Math.sin(t+i)*10, by=sy-5+Math.abs(Math.sin(t*1.5+i))*10; ctx.beginPath(); ctx.arc(bx,by,3+Math.sin(t+i)*2,0,Math.PI*2); ctx.fill();}
+  ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.fillRect(sx,sy,h.w,3);
+}
+
+function PhaserLikeSin(t,i){ return Math.sin(t*1.3+i*2.1); }
+
+function drawFinish(){
+  let f=level.finish;
+  let sx=f.x-camera.x, sy=f.y-camera.y;
+  
+  // Flag pole
+  ctx.fillStyle='#888';
+  ctx.fillRect(sx+25,sy-40,6,60);
+  
+  // Flag
+  let wave=Math.sin(Date.now()/300)*5;
+  ctx.fillStyle='#4CAF50';
+  ctx.beginPath();
+  ctx.moveTo(sx+31,sy-40);
+  ctx.lineTo(sx+55+wave,sy-30);
+  ctx.lineTo(sx+31,sy-20);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Star
+  ctx.fillStyle='#FFD700';
+  ctx.font='bold 18px Nunito';
+  ctx.textAlign='center';
+  ctx.fillText('⭐',sx+28,sy-45);
+  
+  // Label
+  ctx.fillStyle='#fff';
+  ctx.font='bold 12px Nunito';
+  ctx.fillText('ПОРТАЛ',sx+28,sy-55);
+}
+
+
+function drawBackground(){
+  if(currentLevel===0) drawForestBackground(false);
+  else if(currentLevel===1) drawSpaceBackground();
+  else if(currentLevel===2) drawForestBackground(true);
+  else if(currentLevel===3) drawUnderwaterBackground();
+  else drawSkyBackground();
+}
+function drawForestBackground(night){
+  let grad=ctx.createLinearGradient(0,0,0,H());
+  if(night){grad.addColorStop(0,'#142753'); grad.addColorStop(.45,'#14314c'); grad.addColorStop(1,'#102820');}
+  else{grad.addColorStop(0,'#b8f7ff'); grad.addColorStop(.42,'#89dca2'); grad.addColorStop(1,'#1d7a44');}
+  ctx.fillStyle=grad; ctx.fillRect(0,0,W(),H());
+  ctx.fillStyle=night?'rgba(220,235,255,.16)':'rgba(255,240,160,.28)'; ctx.beginPath(); ctx.arc(145,95,72,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=night?'rgba(25,88,78,.45)':'rgba(106,196,112,.55)'; ctx.beginPath(); ctx.ellipse(220-camera.x*.18,420,430,120,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=night?'rgba(17,70,65,.45)':'rgba(62,162,91,.48)'; ctx.beginPath(); ctx.ellipse(650-camera.x*.14,430,520,140,0,0,Math.PI*2); ctx.fill();
+  for(let i=0;i<10;i++){let x=i*170-80-camera.x*.35, base=430; ctx.fillStyle=night?'rgba(54,32,22,.55)':'rgba(91,56,33,.55)'; ctx.fillRect(x+45,base-180,24,250); ctx.fillStyle=night?'rgba(23,86,65,.48)':'rgba(35,130,67,.52)'; ctx.beginPath(); ctx.ellipse(x+55,base-210,70,105,0,0,Math.PI*2); ctx.fill(); ctx.fillStyle=night?'rgba(42,130,87,.38)':'rgba(96,220,118,.42)'; ctx.beginPath(); ctx.ellipse(x+95,base-180,68,92,0,0,Math.PI*2); ctx.fill();}
+  ctx.fillStyle=night?'rgba(92,230,145,.50)':'rgba(80,220,92,.75)'; for(let i=0;i<70;i++){let x=(i*18-camera.x*.8)%(W()+40)-20, y=H()-30+Math.sin(i)*10; ctx.fillRect(x,y,4,22);}
+  for(let i=0;i<24;i++){let x=(i*97+Math.sin(Date.now()/900+i)*35-camera.x*.22)%(W()+120)-60, y=120+(i*37)%300+Math.cos(Date.now()/1100+i)*20; ctx.fillStyle=night?'rgba(255,246,166,.85)':'rgba(255,246,166,.45)'; ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2); ctx.fill();}
+}
+function drawSpaceBackground(){
+  let grad=ctx.createLinearGradient(0,0,0,H()); grad.addColorStop(0,'#080420'); grad.addColorStop(.5,'#1d0b50'); grad.addColorStop(1,'#05010f'); ctx.fillStyle=grad; ctx.fillRect(0,0,W(),H());
+  ctx.fillStyle='rgba(139,69,255,.18)'; ctx.beginPath(); ctx.arc(160,135,150,0,Math.PI*2); ctx.fill(); ctx.fillStyle='rgba(0,216,255,.12)'; ctx.beginPath(); ctx.arc(640,210,190,0,Math.PI*2); ctx.fill(); ctx.fillStyle='rgba(255,79,216,.10)'; ctx.beginPath(); ctx.arc(455,470,170,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(92,124,255,.86)'; ctx.beginPath(); ctx.arc(700-camera.x*.05,95,42,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='rgba(184,246,255,.45)'; ctx.lineWidth=5; ctx.beginPath(); ctx.ellipse(700-camera.x*.05,95,58,13,0,0,Math.PI*2); ctx.stroke();
+  for(let i=0;i<80;i++){let x=(i*113-camera.x*(.08+(i%5)*.03))%(W()+100)-50, y=(i*53)%H(), a=.35+Math.abs(Math.sin(Date.now()/700+i))*.55; ctx.fillStyle=`rgba(255,255,255,${a})`; ctx.beginPath(); ctx.arc(x,y,1.2+(i%3)*.45,0,Math.PI*2); ctx.fill();}
+}
+
+
+function drawUnderwaterBackground(){
+  let grad=ctx.createLinearGradient(0,0,0,H());
+  grad.addColorStop(0,'#54e7ff');
+  grad.addColorStop(.42,'#088fc2');
+  grad.addColorStop(1,'#02334f');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,W(),H());
+
+  // Лучи света сверху
+  ctx.fillStyle='rgba(255,255,255,0.11)';
+  for(let i=0;i<4;i++){
+    let x=80+i*210-camera.x*.06;
+    ctx.beginPath();
+    ctx.moveTo(x,0); ctx.lineTo(x+55,0); ctx.lineTo(x+150,H()); ctx.lineTo(x-70,H());
+    ctx.closePath(); ctx.fill();
+  }
+
+  // Дальние волны и рифы
+  ctx.fillStyle='rgba(0,96,132,0.32)';
+  ctx.beginPath(); ctx.ellipse(220-camera.x*.12,440,420,120,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(0,61,97,0.42)';
+  ctx.beginPath(); ctx.ellipse(670-camera.x*.10,465,520,150,0,0,Math.PI*2); ctx.fill();
+
+  // Кораллы и водоросли на дальнем плане
+  for(let i=0;i<18;i++){
+    let x=(i*140-camera.x*.45)%(W()+160)-80;
+    let base=H()-20;
+    ctx.strokeStyle=i%2?'rgba(255,118,194,.55)':'rgba(78,255,190,.55)';
+    ctx.lineWidth=5;
+    ctx.beginPath();
+    ctx.moveTo(x,base);
+    ctx.quadraticCurveTo(x+Math.sin(Date.now()/700+i)*18,base-55,x+8,base-110-(i%4)*12);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x+8,base-55);
+    ctx.quadraticCurveTo(x+34,base-70,x+28,base-95);
+    ctx.stroke();
+  }
+
+  // Пузырьки
+  for(let i=0;i<45;i++){
+    let x=(i*73+Math.sin(Date.now()/800+i)*22-camera.x*.20)%(W()+80)-40;
+    let y=(H()-((Date.now()/28+i*41)%(H()+90)))+40;
+    let r=2+(i%4);
+    ctx.strokeStyle='rgba(210,250,255,.45)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.stroke();
+  }
+
+  // Рыбки силуэтами
+  for(let i=0;i<8;i++){
+    let x=(i*190-Date.now()/45-camera.x*.32)%(W()+120)+60;
+    let y=115+(i*51)%270+Math.sin(Date.now()/900+i)*18;
+    ctx.fillStyle=i%2?'rgba(255,218,91,.55)':'rgba(255,128,190,.45)';
+    ctx.beginPath(); ctx.ellipse(x,y,16,8,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x+15,y); ctx.lineTo(x+28,y-9); ctx.lineTo(x+28,y+9); ctx.closePath(); ctx.fill();
+  }
+}
+
+
+function drawSkyBackground(){
+  let grad=ctx.createLinearGradient(0,0,0,H());
+  grad.addColorStop(0,'#63c8ff');
+  grad.addColorStop(.42,'#aee9ff');
+  grad.addColorStop(1,'#f4fbff');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,W(),H());
+
+  // Солнце и мягкое сияние
+  ctx.fillStyle='rgba(255,232,104,0.38)'; ctx.beginPath(); ctx.arc(145,105,78,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.22)'; ctx.beginPath(); ctx.arc(145,105,48,0,Math.PI*2); ctx.fill();
+
+  // Дальние большие облака с параллаксом
+  for(let i=0;i<8;i++){
+    let x=(i*210 - camera.x*.18 + Math.sin(Date.now()/1300+i)*18)%(W()+260)-130;
+    let y=80+(i%4)*85+Math.cos(Date.now()/1500+i)*10;
+    ctx.fillStyle='rgba(255,255,255,0.62)';
+    ctx.beginPath();
+    ctx.arc(x,y,32,0,Math.PI*2); ctx.arc(x+38,y-12,42,0,Math.PI*2); ctx.arc(x+86,y,35,0,Math.PI*2); ctx.arc(x+45,y+12,45,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  // Летящие птички-галочки
+  ctx.strokeStyle='rgba(75,110,150,.35)'; ctx.lineWidth=2;
+  for(let i=0;i<9;i++){
+    let x=(i*160-Date.now()/70-camera.x*.12)%(W()+120)+40;
+    let y=70+(i*47)%220;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.quadraticCurveTo(x+8,y-7,x+16,y); ctx.quadraticCurveTo(x+24,y-7,x+32,y); ctx.stroke();
+  }
+}
+
+// ===== MAIN LOOP =====
+function gameLoop(){
+  if(gameState==='menu'){
+    // Draw a pretty background animation
+    ctx.fillStyle='#1a1a2e';
+    ctx.fillRect(0,0,W(),H());
+    
+    // Floating blocks
+    let t=Date.now()/1000;
+    for(let i=0;i<15;i++){
+      let x=(i*97+t*30)%W();
+      let y=H()-50-Math.sin(t+i)*30;
+      let colors=['#4CAF50','#5c47d9','#1f6d55','#00c7d9','#26d0c3','#ff7bc7','#ffffff','#7ecbff'];
+      ctx.fillStyle=colors[i%colors.length];
+      ctx.fillRect(x,y,25,25);
+      ctx.fillStyle='rgba(255,255,255,0.15)';
+      ctx.fillRect(x,y,25,3);
+    }
+    
+    // Roblox-like grid
+    ctx.strokeStyle='rgba(255,255,255,0.03)';
+    ctx.lineWidth=1;
+    for(let x=0;x<W();x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H());ctx.stroke();}
+    for(let y=0;y<H();y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W(),y);ctx.stroke();}
+    
+    requestAnimationFrame(gameLoop);
+    return;
+  }
+  
+  if(gameState==='playing'){
+    updatePlayer();
+    updateCamera();
+    updateParticles();
+  }
+  
+  // Screen shake
+  let shakeX=0,shakeY=0;
+  if(screenShake>0){
+    shakeX=(Math.random()-.5)*screenShake;
+    shakeY=(Math.random()-.5)*screenShake;
+    screenShake*=0.9;
+    if(screenShake<0.5) screenShake=0;
+  }
+  
+  ctx.save();
+  ctx.translate(shakeX,shakeY);
+  
+  drawBackground();
+  
+  if(level){
+    // Draw platforms
+    for(let p of level.platforms){
+      drawBlock(p.x,p.y,p.w,p.h,p.color);
+      // Type-specific decoration
+      if(p.type==='grass'){
+        ctx.fillStyle='#66BB6A';
+        for(let gx=p.x;gx<p.x+p.w;gx+=12){
+          drawBlock(gx,p.y-3,10,3,'#66BB6A');
+        }
+      }
+      if(p.type==='fire'){
+        ctx.fillStyle='rgba(255,100,0,0.3)';
+        for(let i=0;i<3;i++){
+          let fx=p.x+Math.random()*p.w;
+          let fy=p.y-5-Math.random()*15;
+          ctx.fillRect(fx,fy,3,5);
+        }
+      }
+      if(p.type==='neon'){
+        let glow=Math.sin(Date.now()/500)*0.3+0.3;
+        ctx.fillStyle=`rgba(233,30,99,${glow})`;
+        ctx.fillRect(p.x-camera.x-3,p.y-camera.y-3,p.w+6,3);
+      }
+    }
+    
+    // Draw hazards
+    for(let h of level.hazards) drawHazard(h);
+    
+    // Draw coins
+    for(let c of level.coins) drawCoin(c);
+    
+    // Draw finish
+    drawFinish();
+    
+    // Draw checkpoint marker
+    let cp=level.checkpoint;
+    ctx.fillStyle='rgba(76,175,80,0.5)';
+    ctx.fillRect(cp.x-camera.x,cp.y-camera.y,40,40);
+    ctx.fillStyle='#4CAF50';
+    ctx.font='bold 16px Nunito';
+    ctx.textAlign='center';
+    ctx.fillText('🚩',cp.x-camera.x+20,cp.y-camera.y+25);
+    
+    // Draw player
+    if(!player.dead) drawPlayer();
+    
+    // Draw particles
+    drawParticles();
+  }
+  
+  ctx.restore();
+  
+  requestAnimationFrame(gameLoop);
+}
+
+// ===== START =====
+updateWalletUI();
+setCollectibleHud(0);
+gameLoop();
+</script>
+</body>
+</html>

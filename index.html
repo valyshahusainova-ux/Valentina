@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Юный креатор большого цифрового мира</title>
+
+  <!--
+    СТРУКТУРА ПАПОК ПРОЕКТА
+
+    /project
+    ├── index.html
+    ├── /images
+    │   ├── avatar.jpg
+    │   └── /works
+    │       ├── work1.jpg
+    │       └── work2.jpg
+    ├── /videos
+    │   ├── video1.mp4
+    │   └── /previews
+    │       └── preview1.jpg
+    └── /presentations
+        └── project.pdf
+  -->
+
+  <style>
+    /* =========================
+       ОСНОВНЫЕ ПЕРЕМЕННЫЕ САЙТА
+       ========================= */
+    :root {
+      --cream: #FFFBF5;
+      --lavender: #E0E7FF;
+      --peach: #FFE4E1;
+      --mint: #D1FAE5;
+      --accent: #7C3AED;
+      --accent-dark: #5B21B6;
+      --text: #241B35;
+      --muted: #6B6475;
+      --white: #FFFFFF;
+      --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      --radius: 24px;
+      --transition: 0.3s ease;
+      --max-width: 1180px;
+    }
+
+    /* =========================
+       СБРОС И БАЗОВЫЕ СТИЛИ
+       ========================= */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(224, 231, 255, 0.95), transparent 32%),
+        radial-gradient(circle at 85% 20%, rgba(255, 228, 225, 0.95), transparent 34%),
+        radial-gradient(circle at 50% 90%, rgba(209, 250, 229, 0.9), transparent 36%),
+        var(--cream);
+      color: var(--text);
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    /* Декоративный живой фон по всему сайту */
+.page-decor {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.page-decor span {
+  position: absolute;
+  display: block;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.28), rgba(124, 58, 237, 0.06), transparent 70%);
+  filter: blur(1px);
+  animation: decor-float 14s ease-in-out infinite;
+}
+
+.page-decor span:nth-child(1) {
+  top: 12%;
+  left: 8%;
+  width: 110px;
+  height: 110px;
+}
+
+.page-decor span:nth-child(2) {
+  top: 28%;
+  right: 8%;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.25), rgba(124, 58, 237, 0.06), transparent 70%);
+  animation-delay: 2s;
+}
+
+.page-decor span:nth-child(3) {
+  top: 45%;
+  left: 12%;
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.25), rgba(37, 99, 235, 0.05), transparent 70%);
+  animation-delay: 4s;
+}
+
+.page-decor span:nth-child(4) {
+  top: 60%;
+  right: 14%;
+  width: 130px;
+  height: 130px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.22), rgba(37, 99, 235, 0.05), transparent 70%);
+  animation-delay: 1s;
+}
+
+.page-decor span:nth-child(5) {
+  top: 78%;
+  left: 7%;
+  width: 95px;
+  height: 95px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.22), rgba(14, 165, 233, 0.05), transparent 70%);
+  animation-delay: 3s;
+}
+
+.page-decor span:nth-child(6) {
+  top: 88%;
+  right: 7%;
+  width: 115px;
+  height: 115px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.20), rgba(236, 72, 153, 0.05), transparent 70%);
+  animation-delay: 5s;
+}
+
+@keyframes decor-float {
+  0%, 100% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.75;
+  }
+
+  50% {
+    transform: translateY(-35px) translateX(20px) scale(1.12);
+    opacity: 1;
+  }
+}
+
+    img, video, iframe, embed {
+      max-width: 100%;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      border: none;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    /* =========================
+       ОБЩИЕ КЛАССЫ И КАРТОЧКИ
+       ========================= */
+    .container {
+      width: min(100% - 40px, var(--max-width));
+      margin: 0 auto;
+    }
+
+    .section {
+      padding: 90px 0;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+      scroll-margin-top: 120px;
+    }
+
+    .section.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section-title {
+      margin-bottom: 14px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .section-subtitle {
+      max-width: 720px;
+      margin-bottom: 34px;
+      color: var(--muted);
+      font-size: 20px;
+    }
+
+    .card {
+      border: 1px solid rgba(124, 58, 237, 0.08);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(124, 58, 237, 0.18);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.11);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: var(--white);
+      font-weight: 700;
+      box-shadow: 0 12px 28px rgba(124, 58, 237, 0.25);
+      transition: transform var(--transition), background var(--transition), box-shadow var(--transition);
+    }
+
+    .button:hover {
+      transform: translateY(-3px);
+      background: var(--accent-dark);
+      box-shadow: 0 16px 34px rgba(124, 58, 237, 0.34);
+    }
+
+    /* =========================
+       ШАПКА И НАВИГАЦИЯ
+       ========================= */
+    .hero-header {
+      position: relative;
+      padding: 54px 0 34px;
+      text-align: center;
+    }
+
+    .hero-header::before {
+      content: "✨";
+      position: absolute;
+      top: 28px;
+      left: min(9vw, 120px);
+      font-size: 54px;
+      opacity: 0.65;
+      transform: rotate(-12deg);
+    }
+
+    .hero-header::after {
+      content: "🎨";
+      position: absolute;
+      right: min(8vw, 110px);
+      bottom: 22px;
+      font-size: 58px;
+      opacity: 0.65;
+      transform: rotate(10deg);
+    }
+
+    .student-name {
+      margin-bottom: 14px;
+      font-size: clamp(48px, 7vw, 64px);
+      line-height: 1.02;
+      font-weight: 850;
+      letter-spacing: -0.05em;
+    }
+
+    .student-tagline {
+      color: var(--muted);
+      font-size: clamp(20px, 3vw, 26px);
+      font-weight: 650;
+    }
+
+    .sticky-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 12px 0;
+      background: rgba(255, 251, 245, 0.82);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(124, 58, 237, 0.08);
+    }
+
+    .nav-list {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      list-style: none;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-weight: 750;
+      transition: color var(--transition), background var(--transition), transform var(--transition);
+    }
+
+    .nav-link:hover,
+    .nav-link.is-active {
+      color: var(--white);
+      background: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* =========================
+       СЕКЦИЯ ОБО МНЕ
+       ========================= */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .avatar-card,
+    .about-text-card {
+      padding: 32px;
+    }
+
+    .avatar-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--lavender), var(--mint));
+    }
+
+    .avatar-wrap {
+      width: 240px;
+      height: 240px;
+      padding: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--white), var(--peach));
+      box-shadow: 0 18px 40px rgba(124, 58, 237, 0.18);
+    }
+
+    .avatar-wrap img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .about-text-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 228, 225, 0.54));
+    }
+
+    .about-text-card h3 {
+      margin-bottom: 14px;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    .about-text-card p {
+      color: var(--muted);
+      font-size: 19px;
+    }
+
+    /* =========================
+       КАРУСЕЛИ
+       ========================= */
+    .carousel-shell {
+      position: relative;
+    }
+
+    .carousel {
+      display: flex;
+      gap: 22px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      padding: 10px 4px 28px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(124, 58, 237, 0.45) rgba(124, 58, 237, 0.08);
+    }
+
+    .carousel-item {
+      flex: 0 0 min(78vw, 340px);
+     box-shadow: var(--shadow);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .carousel-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.12);
+    }
+
+    .carousel-item img {
+      display: block;
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      transition: transform var(--transition);
+    }
+
+    .carousel-item:hover img {
+      transform: scale(1.05);
+    }
+
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      z-index: 5;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--white);
+      font-size: 24px;
+      box-shadow: 0 12px 28px rgba(124, 58, 237, 0.25);
+      transform: translateY(-50%);
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+
+    .carousel-arrow:hover {
+      background: var(--accent-dark);
+      transform: translateY(-50%) scale(1.06);
+      box-shadow: 0 16px 34px rgba(124, 58, 237, 0.34);
+    }
+
+    .carousel-arrow.prev {
+      left: -18px;
+    }
+
+    .carousel-arrow.next {
+      right: -18px;
+    }
+
+    /* =========================
+       ВИДЕО-КАРТОЧКИ
+       ========================= */
+    .video-card {
+      position: relative;
+    }
+
+    .play-badge {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      background: linear-gradient(180deg, transparent, rgba(36, 27, 53, 0.22));
+    }
+
+    .play-badge span {
+      width: 72px;
+      height: 72px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.88);
+      color: var(--accent);
+      font-size: 34px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
+    }
+
+    /* =========================
+       PDF И ПРОЕКТЫ
+       ========================= */
+    .viewer-card {
+      padding: 18px;
+    }
+
+    .pdf-viewer,
+    .project-frame {
+      display: block;
+      width: 100%;
+      border: 1px solid rgba(124, 58, 237, 0.16);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+
+    .pdf-viewer {
+      height: 600px;
+    }
+
+    .project-frame {
+      height: 700px;
+    }
+
+    .viewer-actions {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    /* =========================
+       МОДАЛЬНЫЕ ОКНА
+       ========================= */
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 26px;
+      background: rgba(36, 27, 53, 0.58);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition);
+    }
+
+    .modal.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      position: relative;
+      width: min(100%, 980px);
+      max-height: 90vh;
+      border-radius: var(--radius);
+      background: var(--white);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+      overflow: hidden;
+      opacity: 0;
+      transform: scale(0.94);
+      transition: opacity var(--transition), transform var(--transition);
+    }
+
+    .modal.is-open .modal-content {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .modal-image,
+    .modal-video {
+      display: block;
+      width: 100%;
+      max-height: 84vh;
+      object-fit: contain;
+      background: #121212;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 2;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text);
+      font-size: 22px;
+      font-weight: 800;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+      transition: transform var(--transition), background var(--transition);
+    }
+
+    .modal-close:hover {
+      transform: scale(1.06);
+      background: var(--white);
+    }
+
+    body.modal-lock {
+      overflow: hidden;
+    }
+
+    /* =========================
+       ПОДВАЛ
+       ========================= */
+    .site-footer {
+      padding: 36px 0 46px;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    /* =========================
+       АДАПТИВНОСТЬ: TABLET
+       ========================= */
+    @media (max-width: 1023px) {
+      .section {
+        padding: 74px 0;
+      }
+
+      .about-grid {
+        grid-template-columns: 300px 1fr;
+      }
+
+      .avatar-wrap {
+        width: 220px;
+        height: 220px;
+      }
+
+      .carousel-arrow.prev {
+        left: 4px;
+      }
+
+      .carousel-arrow.next {
+        right: 4px;
+      }
+    }
+
+    /* =========================
+       АДАПТИВНОСТЬ: MOBILE
+       ========================= */
+    @media (max-width: 767px) {
+      .container {
+        width: min(100% - 28px, var(--max-width));
+      }
+
+      .hero-header {
+        padding: 42px 0 26px;
+      }
+
+      .hero-header::before,
+      .hero-header::after {
+        display: none;
+      }
+
+      .nav-list {
+        justify-content: flex-start;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+      }
+
+      .nav-link {
+        white-space: nowrap;
+      }
+
+      .section {
+        padding: 58px 0;
+        scroll-margin-top: 104px;
+      }
+
+      .section-subtitle {
+        font-size: 18px;
+      }
+
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .avatar-card,
+      .about-text-card {
+        padding: 24px;
+      }
+
+      .avatar-wrap {
+        width: 210px;
+        height: 210px;
+      }
+
+      .carousel {
+        gap: 16px;
+        padding-bottom: 24px;
+      }
+
+      .carousel-item {
+        flex-basis: 84vw;
+      }
+
+      .carousel-item img {
+        height: 230px;
+      }
+
+      .carousel-arrow {
+        width: 46px;
+        height: 46px;
+        font-size: 20px;
+      }
+
+      .pdf-viewer {
+        height: 460px;
+      }
+
+      .project-frame {
+        height: 520px;
+      }
+
+      .modal {
+        padding: 14px;
+      }
+    }
+    /* Красивый тёмно-синий градиент для главных заголовков */
+.student-name,
+.section-title {
+  background: linear-gradient(135deg, #061B46, #123B8C, #2563EB);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 8px 28px rgba(18, 59, 140, 0.18);
+}
+
+/* Слоган под именем */
+.student-tagline {
+  background: linear-gradient(135deg, #0B1F4D, #1D4ED8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+
+/* Текст в разделе "Обо мне" */
+.about-text-card p {
+  color: #0B1F4D;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.8;
+}
+/* Летающие объекты по кругу в шапке */
+.hero-header {
+  overflow: hidden;
+}
+
+.floating-orbit span {
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.95), rgba(224, 231, 255, 0.72)),
+    linear-gradient(135deg, rgba(124, 58, 237, 0.16), rgba(37, 99, 235, 0.16));
+  box-shadow:
+    0 0 18px rgba(37, 99, 235, 0.22),
+    0 12px 30px rgba(91, 33, 182, 0.20);
+  backdrop-filter: blur(12px);
+  font-size: 30px;
+  animation:
+    orbit-float 3s ease-in-out infinite,
+    icon-pulse 2.8s ease-in-out infinite;
+}
+@keyframes icon-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 0 rgba(37, 99, 235, 0));
+    transform: scale(1);
+  }
+
+  50% {
+    filter: drop-shadow(0 0 12px rgba(37, 99, 235, 0.45));
+    transform: scale(1.12);
+  }
+}
+/* Красивые светящиеся украшения по всему сайту БЕЗ HTML */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.18), transparent 12%),
+    radial-gradient(circle at 90% 25%, rgba(124, 58, 237, 0.18), transparent 13%),
+    radial-gradient(circle at 15% 55%, rgba(236, 72, 153, 0.14), transparent 12%),
+    radial-gradient(circle at 85% 70%, rgba(14, 165, 233, 0.16), transparent 14%),
+    radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.13), transparent 13%);
+  animation: soft-bg-move 14s ease-in-out infinite alternate;
+}
+
+body::after {
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.9) 0 3px, transparent 4px),
+    radial-gradient(circle, rgba(124,58,237,0.35) 0 4px, transparent 5px),
+    radial-gradient(circle, rgba(37,99,235,0.35) 0 3px, transparent 4px);
+  background-size: 180px 180px, 260px 260px, 320px 320px;
+  animation: stars-fly 22s linear infinite;
+  opacity: 0.7;
+}
+
+@keyframes soft-bg-move {
+  from {
+    transform: translateY(0) scale(1);
+  }
+  to {
+    transform: translateY(-25px) scale(1.05);
+  }
+}
+
+@keyframes stars-fly {
+  from {
+    background-position: 0 0, 0 0, 0 0;
+  }
+  to {
+    background-position: 260px 420px, -320px 280px, 420px -260px;
+  }
+}
+
+/* Чтобы весь контент был поверх украшений */
+.hero-header,
+.sticky-nav,
+main,
+.site-footer {
+  position: relative;
+  z-index: 2;
+}
+    /* Красивый тёмно-синий градиент для главных заголовков */
+.student-name,
+.section-title {
+  background: linear-gradient(135deg, #061B46, #123B8C, #2563EB);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 8px 28px rgba(18, 59, 140, 0.18);
+}
+
+/* Слоган под именем */
+.student-tagline {
+  background: linear-gradient(135deg, #0B1F4D, #1D4ED8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+
+/* Текст в разделе "Обо мне" */
+.about-text-card p {
+  color: #0B1F4D;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.8;
+}
+
+/* Летающие иконки в шапке */
+.hero-header {
+  overflow: hidden;
+}
+
+.floating-orbit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 520px;
+  height: 520px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: orbit-spin 18s linear infinite;
+  opacity: 0.95;
+  z-index: 1;
+}
+
+.floating-orbit span {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.98), rgba(224, 231, 255, 0.75)),
+    linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(37, 99, 235, 0.18));
+  box-shadow:
+    0 0 18px rgba(37, 99, 235, 0.28),
+    0 14px 32px rgba(91, 33, 182, 0.22);
+  backdrop-filter: blur(12px);
+  font-size: 32px;
+  animation:
+    orbit-float 3s ease-in-out infinite,
+    icon-pulse 2.8s ease-in-out infinite;
+}
+
+.floating-orbit span:nth-child(1) {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: 0s, 0s;
+}
+
+.floating-orbit span:nth-child(2) {
+  top: 22%;
+  right: 0;
+  animation-delay: 0.4s, 0.8s;
+}
+
+.floating-orbit span:nth-child(3) {
+  bottom: 22%;
+  right: 0;
+  animation-delay: 0.8s, 1.2s;
+}
+
+.floating-orbit span:nth-child(4) {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  animation-delay: 1.2s, 1.6s;
+}
+
+.floating-orbit span:nth-child(5) {
+  bottom: 22%;
+  left: 0;
+  animation-delay: 1.6s, 2s;
+}
+
+.floating-orbit span:nth-child(6) {
+  top: 22%;
+  left: 0;
+  animation-delay: 2s, 2.4s;
+}
+
+@keyframes orbit-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes orbit-float {
+  0%, 100% {
+    margin-top: 0;
+  }
+
+  50% {
+    margin-top: -12px;
+  }
+}
+
+@keyframes icon-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 0 rgba(37, 99, 235, 0));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 14px rgba(37, 99, 235, 0.55));
+  }
+}
+
+/* Красивые светящиеся украшения по всему сайту */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.18), transparent 12%),
+    radial-gradient(circle at 90% 25%, rgba(124, 58, 237, 0.18), transparent 13%),
+    radial-gradient(circle at 15% 55%, rgba(236, 72, 153, 0.14), transparent 12%),
+    radial-gradient(circle at 85% 70%, rgba(14, 165, 233, 0.16), transparent 14%),
+    radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.13), transparent 13%);
+  animation: soft-bg-move 14s ease-in-out infinite alternate;
+}
+
+body::after {
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.9) 0 3px, transparent 4px),
+    radial-gradient(circle, rgba(124,58,237,0.35) 0 4px, transparent 5px),
+    radial-gradient(circle, rgba(37,99,235,0.35) 0 3px, transparent 4px);
+  background-size: 180px 180px, 260px 260px, 320px 320px;
+  animation: stars-fly 22s linear infinite;
+  opacity: 0.7;
+}
+
+@keyframes soft-bg-move {
+  from {
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    transform: translateY(-25px) scale(1.05);
+  }
+}
+
+@keyframes stars-fly {
+  from {
+    background-position: 0 0, 0 0, 0 0;
+  }
+
+  to {
+    background-position: 260px 420px, -320px 280px, 420px -260px;
+  }
+}
+
+/* Чтобы контент был поверх украшений */
+.hero-header,
+.sticky-nav,
+main,
+.site-footer {
+  position: relative;
+  z-index: 2;
+}
+
+/* Чтобы текст в шапке был выше иконок */
+.hero-header .container {
+  position: relative;
+  z-index: 3;
+}
+
+/* На телефоне круг меньше */
+@media (max-width: 767px) {
+  .floating-orbit {
+    width: 320px;
+    height: 320px;
+    opacity: 0.75;
+  }
+
+  .floating-orbit span {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+}    
+  </style>
+</head>
+<body>
+  <!-- =========================
+       ШАПКА С ИМЕНЕМ УЧЕНИКА
+       ========================= -->
+  <header class="hero-header">
+  <div class="floating-orbit" aria-hidden="true">
+    <span>✨</span>
+    <span>💻</span>
+    <span>🎨</span>
+    <span>🚀</span>
+    <span>🌟</span>
+    <span>🤖</span>
+  </div>
+
+  <div class="container">
+    <h1 class="student-name">Валя Хусаинова</h1>
+    <p class="student-tagline">Юный создатель цифрового контента</p>
+  </div>
+</header>
+
+  <!-- =========================
+       STICKY-МЕНЮ С ЯКОРЯМИ
+       ========================= -->
+  <nav class="sticky-nav" aria-label="Главное меню">
+    <div class="container">
+      <ul class="nav-list">
+        <li><a class="nav-link is-active" href="#about">Обо мне</a></li>
+        <li><a class="nav-link" href="#pictures">Картинки</a></li>
+        <li><a class="nav-link" href="#videos">Видео</a></li>
+        <li><a class="nav-link" href="#presentation">Презентация</a></li>
+        <li><a class="nav-link" href="#projects">Проекты</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <!-- =========================
+         СЕКЦИЯ ОБО МНЕ
+         ========================= -->
+    <section class="section" id="about" aria-labelledby="about-title">
+      <div class="container">
+        <h2 class="section-title" id="about-title">Обо мне ✨</h2>
+        <div class="about-grid">
+          <article class="card avatar-card">
+            <div class="avatar-wrap">
+              <!-- AVATAR_PLACEHOLDER: путь к локальному файлу, например images/avatar.jpg -->
+              <img src="images/avatar.jpg" alt="Аватар ученика">
+            </div>
+          </article>
+
+          <article class="card about-text-card">
+            <!-- ABOUT_TEXT_PLACEHOLDER: 3–4 предложения о ученике, его увлечениях и инструментах -->
+            <p> Привет! Меня зовут Валя. Я учусь в МБОУ г. Пушкино «Образовательный комплекс № 5» и увлекаюсь цифровым творчеством. Мне нравится создавать изображения, видео, презентации и проекты с помощью современных технологий и искусственного интеллекта.
+
+Этот сайт — моё портфолио юного креатора цифрового мира. Здесь собраны мои идеи, работы и творческие эксперименты.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         СЕКЦИЯ МОИ КАРТИНКИ
+         ========================= -->
+    <section class="section" id="pictures" aria-labelledby="pictures-title">
+      <div class="container">
+        <h2 class="section-title" id="pictures-title">Мои картинки 🎨</h2>
+        <p class="section-subtitle">Я создаю картинки в ИИ и люблю придумывать новые идеи</p>
+
+        <div class="carousel-shell">
+          <button class="carousel-arrow prev" type="button" data-carousel-prev="images-carousel" aria-label="Показать предыдущие картинки">◀</button>
+          <div class="carousel" id="images-carousel" aria-label="Карусель картинок">
+            <!-- IMAGES_CAROUSEL_ITEMS: все картинки в папке images/works/ -->
+            <button class="carousel-item image-open" type="button" data-full="images/works/work1.jpg" aria-label="Открыть работу 1">
+              <img src="images/works/work1.jpg" alt="Работа 1">
+            </button>
+            <button class="carousel-item image-open" type="button" data-full="images/works/work2.jpg" aria-label="Открыть работу 2">
+              <img src="images/works/work2.jpg" alt="Работа 2">
+            </button>
+            <button class="carousel-item image-open" type="button" data-full="images/works/work3.jpg" aria-label="Открыть работу 3">
+              <img src="images/works/work3.jpg" alt="Работа 3">
+            </button>
+          </div>
+          <button class="carousel-arrow next" type="button" data-carousel-next="images-carousel" aria-label="Показать следующие картинки">▶</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         СЕКЦИЯ МОИ ВИДЕО
+         ========================= -->
+    <section class="section" id="videos" aria-labelledby="videos-title">
+      <div class="container">
+        <h2 class="section-title" id="videos-title">Мои видео 🎬</h2>
+        <p class="section-subtitle">Я создаю короткие ролики, монтирую их и добавляю эффекты</p>
+
+        <div class="carousel-shell">
+          <button class="carousel-arrow prev" type="button" data-carousel-prev="videos-carousel" aria-label="Показать предыдущие видео">◀</button>
+          <div class="carousel" id="videos-carousel" aria-label="Карусель видео">
+            <!-- VIDEO_ITEMS: видео в videos/, превью в videos/previews/ -->
+            <button class="carousel-item video-card video-open" type="button" data-video="videos/video1.mp4" aria-label="Открыть видео 1">
+              <img src="videos/previews/preview1.jpg" alt="Превью 1">
+              <span class="play-badge" aria-hidden="true"><span>▶</span></span>
+            </button>
+            <button class="carousel-item video-card video-open" type="button" data-video="videos/video2.mp4" aria-label="Открыть видео 2">
+              <img src="videos/previews/preview2.jpg" alt="Превью 2">
+              <span class="play-badge" aria-hidden="true"><span>▶</span></span>
+            </button>
+            <button class="carousel-item video-card video-open" type="button" data-video="videos/video3.mp4" aria-label="Открыть видео 3">
+              <img src="videos/previews/preview3.jpg" alt="Превью 3">
+              <span class="play-badge" aria-hidden="true"><span>▶</span></span>
+            </button>
+          </div>
+          <button class="carousel-arrow next" type="button" data-carousel-next="videos-carousel" aria-label="Показать следующие видео">▶</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         СЕКЦИЯ МОЯ ПРЕЗЕНТАЦИЯ
+         ========================= -->
+    <section class="section" id="presentation" aria-labelledby="presentation-title">
+      <div class="container">
+        <h2 class="section-title" id="presentation-title">Моя презентация 📊</h2>
+        <p class="section-subtitle">Эта презентация — мой проект. Я сделал(а) оформление, картинки и структуру</p>
+
+        <div class="card viewer-card">
+          <!-- PRESENTATION_PLACEHOLDER: локальный PDF, например presentations/project.pdf -->
+          <embed class="pdf-viewer" src="presentations/project.pdf" type="application/pdf">
+          <div class="viewer-actions">
+            <a class="button" href="presentations/project.pdf" download>Скачать PDF</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         СЕКЦИЯ МОИ ПРОЕКТЫ
+         ========================= -->
+    <section class="section" id="projects" aria-labelledby="projects-title">
+      <div class="container">
+        <h2 class="section-title" id="projects-title">Мои проекты 🌐</h2>
+        <p class="section-subtitle">Здесь можно посмотреть сайты, которые я делал(а) раньше</p>
+
+        <div class="card viewer-card">
+          <!-- PROJECT_IFRAME_PLACEHOLDER: вставьте URL ранее созданного сайта -->
+          <iframe class="project-frame" src="game1.html" title="Мой проект"></iframe>
+          <div class="viewer-actions">
+            <a class="button" href="game1.html" target="_blank" rel="noopener">Открыть в новой вкладке</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =========================
+       ПОДВАЛ САЙТА
+       ========================= -->
+  <footer class="site-footer">
+    <div class="container">
+      <!-- FOOTER_NAME_PLACEHOLDER: замените имя ученика на то же, что в шапке -->
+      © 2026 Валя Хусаинова.
+    </div>
+  </footer>
+
+  <!-- =========================
+       МОДАЛЬНОЕ ОКНО ДЛЯ КАРТИНОК
+       ========================= -->
+  <div class="modal" id="image-modal" aria-hidden="true" role="dialog" aria-label="Просмотр картинки">
+    <div class="modal-content">
+      <button class="modal-close" type="button" data-close-modal aria-label="Закрыть окно">✕</button>
+      <img class="modal-image" id="modal-image" src="" alt="Увеличенная работа">
+    </div>
+  </div>
+
+  <!-- =========================
+       МОДАЛЬНОЕ ОКНО ДЛЯ ВИДЕО
+       ========================= -->
+  <div class="modal" id="video-modal" aria-hidden="true" role="dialog" aria-label="Просмотр видео">
+    <div class="modal-content">
+      <button class="modal-close" type="button" data-close-modal aria-label="Закрыть окно">✕</button>
+      <video class="modal-video" id="modal-video" controls autoplay></video>
+    </div>
+  </div>
+
+  <script>
+    /* =========================
+       ПОМОЩНИКИ ДЛЯ МОДАЛЬНЫХ ОКОН
+       ========================= */
+    const imageModal = document.getElementById('image-modal');
+    const videoModal = document.getElementById('video-modal');
+    const modalImage = document.getElementById('modal-image');
+    const modalVideo = document.getElementById('modal-video');
+
+    function openModal(modal) {
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('modal-lock');
+    }
+
+    function closeModal(modal) {
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-lock');
+
+      if (modal === videoModal) {
+        modalVideo.pause();
+        modalVideo.currentTime = 0;
+        modalVideo.removeAttribute('src');
+        modalVideo.load();
+      }
+
+      if (modal === imageModal) {
+        modalImage.removeAttribute('src');
+      }
+    }
+
+    function closeAllModals() {
+      closeModal(imageModal);
+      closeModal(videoModal);
+    }
+
+    /* =========================
+       ОТКРЫТИЕ КАРТИНОК В LIGHTBOX
+       ========================= */
+    document.querySelectorAll('.image-open').forEach((button) => {
+      button.addEventListener('click', () => {
+        const fullImagePath = button.getAttribute('data-full');
+        const imageAlt = button.querySelector('img').getAttribute('alt');
+        modalImage.src = fullImagePath;
+        modalImage.alt = imageAlt;
+        openModal(imageModal);
+      });
+    });
+
+    /* =========================
+       ОТКРЫТИЕ ВИДЕО В МОДАЛЬНОМ ОКНЕ
+       ========================= */
+    document.querySelectorAll('.video-open').forEach((button) => {
+      button.addEventListener('click', () => {
+        const videoPath = button.getAttribute('data-video');
+        modalVideo.src = videoPath;
+        openModal(videoModal);
+        modalVideo.play().catch(() => {});
+      });
+    });
+
+    /* =========================
+       ЗАКРЫТИЕ МОДАЛОК ПО ФОНУ, КНОПКЕ И ESC
+       ========================= */
+    document.querySelectorAll('.modal').forEach((modal) => {
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+          closeModal(modal);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-close-modal]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const modal = button.closest('.modal');
+        closeModal(modal);
+      });
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeAllModals();
+      }
+    });
+
+    /* =========================
+       ПЛАВНАЯ ПРОКРУТКА КАРУСЕЛЕЙ ПО КНОПКАМ
+       ========================= */
+    function scrollCarousel(carouselId, direction) {
+      const carousel = document.getElementById(carouselId);
+      const scrollAmount = Math.round(carousel.clientWidth * 0.82);
+      carousel.scrollBy({
+        left: direction * scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+
+    document.querySelectorAll('[data-carousel-prev]').forEach((button) => {
+      button.addEventListener('click', () => {
+        scrollCarousel(button.getAttribute('data-carousel-prev'), -1);
+      });
+    });
+
+    document.querySelectorAll('[data-carousel-next]').forEach((button) => {
+      button.addEventListener('click', () => {
+        scrollCarousel(button.getAttribute('data-carousel-next'), 1);
+      });
+    });
+
+    /* =========================
+       ПОЯВЛЕНИЕ СЕКЦИЙ ПРИ СКРОЛЛЕ
+       ========================= */
+    const sectionRevealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, {
+      threshold: 0.16
+    });
+
+    document.querySelectorAll('.section').forEach((section) => {
+      sectionRevealObserver.observe(section);
+    });
+
+    /* =========================
+       ПОДСВЕТКА АКТИВНОГО ПУНКТА МЕНЮ
+       ========================= */
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('main section[id]');
+
+    function setActiveLink(sectionId) {
+      navLinks.forEach((link) => {
+        link.classList.toggle('is-active', link.getAttribute('href') === '#' + sectionId);
+      });
+    }
+
+    const activeSectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveLink(entry.target.id);
+        }
+      });
+    }, {
+      rootMargin: '-35% 0px -55% 0px',
+      threshold: 0
+    });
+
+    sections.forEach((section) => {
+      activeSectionObserver.observe(section);
+    });
+  </script>
+</body>
+</html>
